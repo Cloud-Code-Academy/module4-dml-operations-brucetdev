@@ -17,30 +17,32 @@
  * The methods within this class serve as practical examples of different DML operations,
  * allowing developers to learn through practice and examples.
  *
- * @author Your Name
+ * @author Bruce Harpham
  */
 
 
 public with sharing class DMLOperations {
 
-    /**
+     /**
      * Question 1
      * Create a new Account object and inserts it into the database.
      * The Account will have a random name for uniqueness.
      * @return The Id of the newly created Account.
      */
     public static Id insertNewAccount() {
+          
         // Create a new Account instance
-
+        Account acc = new Account();
         // Set some fields on the Account
-
+        acc.Name = 'IBM';
+        acc.NumberOfEmployees = 282200;
         // Insert the Account into the database
-
+        insert acc;
         // Return the Id of the newly created Account
-        return null;
-    }
+        return acc.Id;
+        }
 
-    /**
+       /**
      * Question 2
      * Create a new Account with the specified name and industry provided.
      * @param name The name of the account to be created.
@@ -48,8 +50,9 @@ public with sharing class DMLOperations {
      */
     public static void createAccount(String name, String industry) {
         // Create a new Account and set the fields inline
-
+     Account acc = new Account(Name = name, Industry = industry);
         // Insert the Account
+        insert acc;
     }
 
     
