@@ -84,11 +84,12 @@ public with sharing class DMLOperations {
      */
     public static void updateContactLastName(Id contactId, String newLastName) {
         // Retrieve the Contact from the database
-        // [SELECT Id FROM Contact WHERE Id = :contactId]
+        Contact contact = [SELECT Id FROM Contact WHERE Id = :contactId];
 
         // Update the Contact's last name
-
+        contact.LastName = newLastName;
         // Update the Contact in the database
+        update contact;
     }
 
     /**
@@ -100,11 +101,12 @@ public with sharing class DMLOperations {
      */
     public static void updateOpportunityStage(Id oppId, String newStage) {
         // Retrieve the Opportunity from the database
-        // [SELECT Id FROM Opportunity WHERE Id = :oppId]
-
+        Opportunity opp = [SELECT Id FROM Opportunity WHERE Id = :oppId];
+       
         // Update the Opportunity's stage
-
+        opp.StageName = newStage;
         // Update the Opportunity in the database
+        update opp;
     }
 
     /**
