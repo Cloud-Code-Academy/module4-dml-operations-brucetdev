@@ -145,48 +145,70 @@ public static void upsertOpportunityList(List<Opportunity> opportunities) {
     upsert opportunities;
 }
 
-/**
- * Question 8
- * Insert or updates opportunities from list of names.
- * Associate the Opportunities with the account that has the name accountName.
- * There should be an Opportunity for each name provided in the list.
- * @param accountName The name of the Account.
- * @param oppNames The list of Opportunity names.
- */
-public static void upsertOpportunities(String accountName, List<String> oppNames) {
-    // Query the Account with the provided name
-    List<Account> accList = [SELECT Id FROM Account WHERE Name = :accountName LIMIT 1];
-
-    Account acc;
-    if (accList.isEmpty()) {
-        // Create a new Account if not found
-        acc = new Account(Name = accountName);
-        insert acc;
-    } else {
-        acc = accList[0];
-    }
+    /**
+     * Question 8
+     * Insert or updates opportunities from list of names.
+     * Associate the Opportunities with account that has the name accountName.
+     * There should be an Opportunity for each name provided in the list.
+     * @param accountName The name of the Account.
+     * @param oppNames The list of Opportunity names.
+     */
+    public static void upsertOpportunities(String accountName, List<String> oppNames) {
+        // Query the Account with the provided name
+        List<Account> accList = [SELECT Id FROM Account WHERE Name = :accountName LIMIT 1];
+        
+        Account acc;
+        
+        if (!accList.isEmpty()) {
+            // Account with the given name exists, use it
+            acc = accList[0];
+        } else {
+            // Account with the given name doesn't exist, create a new one
+            acc = new Account(Name = accountName);
+            insert acc;
+        }
     
-    List<Opportunity> opportunities = new List<Opportunity>();
-    for (String oppName : oppNames) {
-        // Create an Opportunity with the given name, StageName, CloseDate, and associate it with the Account
-        Opportunity newOpp = new Opportunity(
-            Name = oppName,
-            StageName = 'Prospecting', // Required field - Provide a valid StageName value
-            CloseDate = Date.today().addDays(30), // Required field - Provide a valid CloseDate value
-            AccountId = acc.Id
-        );
-        opportunities.add(newOpp);
-    }
+        // Retrieve existing Opportunities related to the Account
+        List<Opportunity> existingOpps = [SELECT Id, Name FROM Opportunity WHERE AccountId = :acc.Id];
     
-    // Perform upsert operation on the list of Opportunities
-    if (!opportunities.isEmpty()) {
+        // Create a map to store existing Opportunity names
+        Map<String, Opportunity> existingOppsMap = new Map<String, Opportunity>();
+        for (Opportunity opp : existingOpps) {
+            existingOppsMap.put(opp.Name, opp);
+        }
+    
+        // Create a list to store Opportunity records for upsert
+        List<Opportunity> opportunities = new List<Opportunity>();
+    
+        // Loop through each Opportunity name
+        for (String oppName : oppNames) {
+            // Check if an Opportunity with the same name already exists
+            if (existingOppsMap.containsKey(oppName)) {
+                // If exists, update the existing Opportunity
+                Opportunity existingOpp = existingOppsMap.get(oppName);
+                existingOpp.StageName ='Prospecting';
+                existingOpp.CloseDate = Date.today().addDays(30);
+                opportunities.add(existingOpp);
+            } else {
+                // If not exists, create a new Opportunity and associate it with the Account
+                Opportunity newOpp = new Opportunity(
+                    Name = oppName,
+                    AccountId = acc.Id,
+                    StageName ='Prospecting',
+                    CloseDate = Date.today().addDays(30)
+                );
+                opportunities.add(newOpp);
+            }
+        }
+    
+        // Perform upsert operation on the list of Opportunities
         upsert opportunities;
+    
+        // Validate that the number of updated and newly inserted Opportunities matches the number of Opportunity names provided
+        System.assertEquals(oppNames.size(), opportunities.size(), 'The number of upserted Opportunities should match the number of Opportunity names provided');
     }
-}
-
-
-
-
+    
+    
 
     /**
      * Question 9
